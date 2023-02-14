@@ -17,6 +17,8 @@
 #     - Fancy, custom ARNs are not supported - use the defaults that LocalStack gives you!
 #     - Error checking and informational messages are minimal as I want it done quickly! I'll
 #       work on that as we go and if people need this for more than a short duration.
+#     - When backing up SQS, the tool will delete each message as it is read from the queue.
+#       This ensures we don't have multiple copies of each message in the backup.
 #================================================================================================
 
 
