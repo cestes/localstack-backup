@@ -10,11 +10,13 @@
 #
 # ASSUMPTIONS:
 #     - When restoring, it assumes the environmnet is *completely* empty.
-#     - All work is done is region 'us-east-1'
+#     - All work is done in region 'us-east-1'
 #     - The program will create 6 .pickle files in the directory where the it is run when making
 #       the backup. The restore must be run in the same directory so it can find these files.
 #     - All services are expected to be at the default LocalStack URL (see localstack_endpoint_url)
 #     - Fancy, custom ARNs are not supported - use the defaults that LocalStack gives you!
+#     - Error checking and informational messages are minimal as I want it done quickly! I'll
+#       work on that as we go and if people need this for more than a short duration.
 #================================================================================================
 
 
@@ -136,6 +138,8 @@ def backup_sqs():
         with open('sqs_messages.pickle', 'wb') as f:
             pickle.dump(all_messages, f)
 
+    return(success)
+
 #================================================================================================
 # This function will back up all of the SNS topics, their associated subscriptions, and
 # any dead letter queues associated with the subscriptions.
@@ -190,6 +194,7 @@ def backup():
     status = backup_sns()
 
 #================================================================================================
+# restores the S3 buckets and all objects
 #================================================================================================
 def restore_s3():
     # Assume the worst!
@@ -223,6 +228,7 @@ def restore_s3():
                 for object in object_list:
                     s3.put_object(Bucket=object['bucket_name'], Key=object['object_key'], Body=object['object_body'])
 #================================================================================================
+# restores all SQS queues and the messages that were in the queues
 #================================================================================================
 def restore_sqs():
     print("Restoring SQS")
@@ -283,6 +289,7 @@ def restore_sqs():
 
 
 #================================================================================================
+# restores all SNS topics and the subscrptions to each topic.
 #================================================================================================
 def restore_sns():
     try:
@@ -293,17 +300,21 @@ def restore_sns():
         sns_conn = False
 
     if sns_conn:
+        # get a list of all the topics
         topic_list = pickle.load(open("sns_topics.pickle", "rb"))
 
         if len(topic_list) > 0:
+            # create each topic
             for topic in topic_list:
                 topic_name = topic.split(":")[-1]
                 print(f"Restoring SNS topic: {topic_name}")
                 response = sns.create_topic(Name=topic_name)
-        
+
+        # get a list of all subscriptions
         subscriptions = pickle.load(open("sns_subs.pickle", "rb"))
 
         if len(subscriptions) > 0:
+            # restore each subscription
             print(f"Restoring {len(subscriptions)} SNS subscriptions")
             for subscription in subscriptions:
                 # if the subscription is part of a DLQ, then we have to use the redrive policy to make it work
@@ -316,7 +327,7 @@ def restore_sns():
                             'RedrivePolicy': '{ "deadLetterTargetArn": "' + subscription['DLQARN'] + '", "maxReceiveCount": "5"}'
                         }
                     )
-                else:
+                else: # just a normal subscription
                     response = sns.subscribe(
                         TopicArn = subscription['TopicARN'],
                         Protocol = subscription['Protocol'],
