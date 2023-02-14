@@ -145,6 +145,9 @@ def backup_sqs():
 # any dead letter queues associated with the subscriptions.
 #================================================================================================
 def backup_sns():
+
+    success = False
+
     try:
         sns = boto3.client('sns', endpoint_url = localstack_endpoint_url, region_name = 'us-east-1')
         sns_conn = True
@@ -184,6 +187,7 @@ def backup_sns():
             with open('sns_subs.pickle', 'wb') as f:
                 pickle.dump(subscription_list, f)
 
+    return success
 
 #================================================================================================
 # master backup function -- calls individual services
@@ -227,10 +231,13 @@ def restore_s3():
                 print(f"Restoring {len(object_list)} objects")
                 for object in object_list:
                     s3.put_object(Bucket=object['bucket_name'], Key=object['object_key'], Body=object['object_body'])
+
+    return success
 #================================================================================================
 # restores all SQS queues and the messages that were in the queues
 #================================================================================================
 def restore_sqs():
+    success = False
     print("Restoring SQS")
     # Connect to the SQS service
     try:
@@ -286,12 +293,14 @@ def restore_sqs():
                         MessageBody=message['body']
                     )
 
+    return success
 
 
 #================================================================================================
 # restores all SNS topics and the subscrptions to each topic.
 #================================================================================================
 def restore_sns():
+    success = False
     try:
         sns = boto3.client('sns', endpoint_url = localstack_endpoint_url, region_name = 'us-east-1')
         sns_conn = True
@@ -333,13 +342,17 @@ def restore_sns():
                         Protocol = subscription['Protocol'],
                         Endpoint = subscription['Endpoint']
                     )
+    return success
+
+
 #================================================================================================
 # master restore function -- calls individual services
 #================================================================================================
 def restore():
-#    status = restore_s3()
-#    status = restore_sqs()
+    status = restore_s3()
+    status = restore_sqs()
     status = restore_sns()
+
 
 #================================================================================================
 # main program
