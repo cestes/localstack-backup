@@ -321,7 +321,10 @@ def restore_sns():
             for topic in topic_list:
                 topic_name = topic.split(":")[-1]
                 print(f"Restoring SNS topic: {topic_name}")
-                response = sns.create_topic(Name=topic_name)
+                if topic_name.endswith(".fifo"):
+                    response = sns.create_topic(Name=topic_name, Attributes={'FifoTopic': 'true'})
+                else:
+                    response = sns.create_topic(Name=topic_name)
 
         # get a list of all subscriptions
         subscriptions = pickle.load(open("sns_subs.pickle", "rb"))
