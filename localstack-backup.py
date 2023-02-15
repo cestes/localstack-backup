@@ -226,7 +226,7 @@ def restore_s3():
         bucket_list = pickle.load(open("s3_buckets.pickle", "rb"))
         if len(bucket_list) > 0:
             for bucket in bucket_list:
-                print(f"Restoring bucket {bucket}")
+                print(f"Restoring S3 bucket: {bucket}")
                 s3.create_bucket(Bucket=bucket)
 
             # next recreate the objects
@@ -263,7 +263,7 @@ def restore_sqs():
             for queue in queue_list:
                 # we only need the name which is at the end of the url
                 queue_name = queue.split("/")[-1]
-                print(f"Recreating {queue_name}")
+                print(f"Restoring SQS queue: {queue_name}")
                 # make sure anything ending in ".fifo" is recreated as a fifo queue
                 if queue_name.endswith(".fifo"):
                     response = sqs.create_queue(
@@ -336,7 +336,7 @@ def restore_sns():
                 # if the subscription is part of a DLQ, then we have to use the redrive policy to make it work
                 if 'DLQARN' in subscription.keys():
                     response = sns.subscribe(
-                        TopicArn = subscription['TopicARN'],
+                        TopicArn = subscription['topicARN'],
                         Protocol = subscription['Protocol'],
                         Endpoint = subscription['Endpoint'],
                         Attributes = {
@@ -345,7 +345,7 @@ def restore_sns():
                     )
                 else: # just a normal subscription
                     response = sns.subscribe(
-                        TopicArn = subscription['TopicARN'],
+                        TopicArn = subscription['topicARN'],
                         Protocol = subscription['Protocol'],
                         Endpoint = subscription['Endpoint']
                     )
