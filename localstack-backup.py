@@ -334,7 +334,7 @@ def restore_sns():
             print(f"Restoring {len(subscriptions)} SNS subscriptions")
             for subscription in subscriptions:
                 # if the subscription is part of a DLQ, then we have to use the redrive policy to make it work
-                if subscription.has_key("DLQARN"):
+                if 'DLQARN' in subscription.keys():
                     response = sns.subscribe(
                         TopicArn = subscription['TopicARN'],
                         Protocol = subscription['Protocol'],
