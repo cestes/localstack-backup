@@ -74,7 +74,7 @@ def backup_s3():
             # Get the contents of each bucket
             contents = s3.list_objects(Bucket=bucket['Name'])
             # Loop through the contents of each bucket
-            if len(contents['Contents']) > 0:
+            if "Contents" in contents.keys():
                 for obj in contents['Contents']:
                     print(f"    Working on object {obj['Key']}")
                     # Get the object details
