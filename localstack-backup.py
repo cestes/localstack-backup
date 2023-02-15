@@ -337,8 +337,8 @@ def restore_sns():
                 if 'DLQARN' in subscription.keys():
                     response = sns.subscribe(
                         TopicArn = subscription['topicARN'],
-                        Protocol = subscription['Protocol'],
-                        Endpoint = subscription['Endpoint'],
+                        Protocol = subscription['protocol'],
+                        Endpoint = subscription['endpoint'],
                         Attributes = {
                             'RedrivePolicy': '{ "deadLetterTargetArn": "' + subscription['DLQARN'] + '", "maxReceiveCount": "5"}'
                         }
@@ -346,8 +346,8 @@ def restore_sns():
                 else: # just a normal subscription
                     response = sns.subscribe(
                         TopicArn = subscription['topicARN'],
-                        Protocol = subscription['Protocol'],
-                        Endpoint = subscription['Endpoint']
+                        Protocol = subscription['protocol'],
+                        Endpoint = subscription['endpoint']
                     )
     return success
 
