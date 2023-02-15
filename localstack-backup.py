@@ -26,6 +26,7 @@ import boto3
 import pickle
 import random
 import string
+import pdb
 
 localstack_endpoint_url = "http://localhost:4566"
 
@@ -73,16 +74,17 @@ def backup_s3():
             # Get the contents of each bucket
             contents = s3.list_objects(Bucket=bucket['Name'])
             # Loop through the contents of each bucket
-            for obj in contents['Contents']:
-                print(f"    Working on object {obj['Key']}")
-                # Get the object details
-                obj_details = s3.get_object(Bucket=bucket['Name'], Key=obj['Key'])
-                # Add the object details to the list
-                objects.append({
-                    'bucket_name': bucket['Name'],
-                    'object_key': obj['Key'],
-                    'object_body': obj_details['Body'].read()
-                })
+            if len(contents['Contents']) > 0:
+                for obj in contents['Contents']:
+                    print(f"    Working on object {obj['Key']}")
+                    # Get the object details
+                    obj_details = s3.get_object(Bucket=bucket['Name'], Key=obj['Key'])
+                    # Add the object details to the list
+                    objects.append({
+                        'bucket_name': bucket['Name'],
+                        'object_key': obj['Key'],
+                        'object_body': obj_details['Body'].read()
+                    })
 
         # Save the objects in a pickle file
         with open('s3_objects.pickle', 'wb') as f:
@@ -289,7 +291,7 @@ def restore_sqs():
                         MessageGroupId = gen_rand_str(3),
                         MessageDeduplicationId = gen_rand_str(3)
                     )
-                else:
+                else: # just a normal message in a normal queue
                     response = sqs.send_message(
                         QueueUrl=message['queue'],
                         MessageBody=message['body']
@@ -374,6 +376,7 @@ def main():
         status = restore()
 
     print("\nThanks for using the LocalStack backup tool!\n")
+
 
 #================================================================================================
 #================================================================================================
